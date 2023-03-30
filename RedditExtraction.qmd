@@ -1,0 +1,72 @@
+---
+title: "WRIGHTHW4"
+author: "Kathryn Wright"
+format: html
+theme: solar
+---
+
+## 1. Pull some posts from a subreddit
+Pulling posts from r/TaylorSwift subreddit
+```{r}
+library(RedditExtractoR)
+library(tidyverse)
+library(dplyr)
+library(tidytext)
+```
+
+
+```{r}
+#| eval: false
+# run this code interactively to save the rds file in your project folder
+top_ts_urls <- find_thread_urls(subreddit="TaylorSwift", sort_by="top")
+write_rds(top_ts_urls, "top_ts_urls.rds")
+```
+
+```{r}
+# this code will run when rendering to read in the rds file
+top_ts_urls <- read_rds("top_ts_urls.rds")
+```
+
+```{r}
+## retrieving top words and removing stop words
+ts_top_words <- top_ts_urls %>%
+  unnest_tokens(words, text, token = "words") %>%
+  anti_join(stop_words, by = c(words = "word"))
+```
+
+```{r}
+## isolating the "words" column
+clean_ts_top_words <- ts_top_words$words
+```
+
+
+```{r}
+## retrieving top 20 words
+top_10 <- head(clean_ts_top_words, 21)
+top_10
+```
+
+
+## 2. Word Frequency Analysis based on comments
+I don't have reddit so these are comments from the user "Lyd_Euh" who is very
+active in the Taylor Swift subreddit I chose to pull data from in the first
+question.
+```{r}
+ts_user <- get_user_content("Lyd_Euh")
+```
+
+```{r}
+basecomments <- ts_user[["Lyd_Euh"]]$comments
+pluckcomments <- pluck(ts_user, "Lyd_Euh", "comments") %>%
+  tibble() %>%
+  mutate(url = NULL, date_utc = NULL, timestamp = NULL, subreddit = NULL,
+         thread_author = NULL, comment_author = NULL, thread_title = NULL, 
+         up = NULL, downs = NULL, golds = NULL) %>%
+  filter(score > 100)
+mycomments <- tibble(pluckcomments)
+mycomments
+```
+
+mycomments data now has the top 120 comments from this reddit user.
+
+
